@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <h1>ゴーヤ情報ページ</h1>
+    <% require 'pg' %>
+    <!-- pgライブラリをこのhtmlファイル内で使用できるようにし、-->
+    <% connection = PG::connect(dbname: "goya") %>
+    <% connection.internal_encoding = "UTF-8" %>
+    <!-- その後connection変数にgoyaデータベースとの接続情報を入れている -->
+    <form action="indicate.cgi" method="POST">
+       下記に文字を入力してください<br><br>
+      <input type="text"  name="input" ><br>
+      <input type="submit" name="送信" >
+    </form>
+    <br><br>
+    <% result_a = connection.exec("select weight, give_for from crops where give_for <> '自家消費'") %>
+    <% data_a = [] %>
+    <% result_a.each do |record_a| %>
+      <%  data_a << "ゴーヤの大きさ：#{record_a["weight"]} 売った相手：#{record_a["give_for"]}" %>
+    <% end %>
+      <!--bの実装-->
+
+    <% result_b = connection.exec("select quality, give_for from crops where quality = false") %>
+    <% data_b = ["【品質の悪いゴーヤは以下の人に渡っています】"] %>
+    <% result_b.each do |record_b| %>
+      <%  data_b << "売った相手：#{record_b["give_for"]}・・・" %>
+    <!--result変数にゴーヤの大きさと売った相手の情報のデータを入れ-->
+    <!-- それらの情報をeach文で一つずつdataと言う名前の配列に挿入しています。 -->
+    <% end %>
+    <form action="goya.cgi" method="POST">
+       下記のボタンを押すと、譲渡先が自家消費ではないものgoyaページへ飛びます<br><br>
+       <!-- valueには、送りたいデータを代入する -->
+       <!-- name="goya"を、情報の目印とする -->
+      <input type="text" name="goya" value="<%= data_a.join(' ') %>">
+      <input type="submit" name="送信！！！" >
+    </form><br><br>
+    <form action="goya.cgi" method="POST">
+       下記のボタンを押すと、品質が悪いもののgoyaページへ飛びます<br><br>
+       <!-- valueには、送りたいデータを代入する -->
+       <!-- name="goya"を、情報の目印とする -->
+      <input type="text" name="goya" value="<%= data_b.join(' ') %>">
+      <input type="submit" name="goya!!!" >
+    </form>
+  </body>
+</html>
